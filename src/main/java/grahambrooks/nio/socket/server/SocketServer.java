@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
 public class SocketServer {
@@ -122,18 +121,26 @@ public class SocketServer {
 
   public void stop() {
     try {
-      if (this.selector != null && this.selector.isOpen()) {
+      if (selectorNeedsToClose()) {
         this.selector.close();
         if (this.selector.isOpen()) {
 
         }
 
       }
-      if (this.thread != null) {
+      if (isRunning()) {
         thread.interrupt();
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private boolean isRunning() {
+    return this.thread != null;
+  }
+
+  private boolean selectorNeedsToClose() {
+    return this.selector != null && this.selector.isOpen();
   }
 }
