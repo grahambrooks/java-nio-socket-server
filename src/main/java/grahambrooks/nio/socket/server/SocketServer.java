@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
-public class Accepter {
+public class SocketServer {
 
   private final int tcpPort;
   private Selector selector;
@@ -25,7 +25,7 @@ public class Accepter {
   private Thread thread;
   private Map<SocketChannel, List> dataMapper = new HashMap<>();
 
-  public Accepter(int tcpPort) {
+  public SocketServer(int tcpPort) {
     this.tcpPort = tcpPort;
   }
 

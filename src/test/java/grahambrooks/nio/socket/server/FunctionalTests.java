@@ -25,31 +25,31 @@ public class FunctionalTests {
 
   @Test
   public void acceptsConnection() throws IOException {
-    Accepter Accepter = new Accepter(TEST_PORT);
-    Accepter.start();
+    SocketServer SocketServer = new SocketServer(TEST_PORT);
+    SocketServer.start();
 
     Socket socket = testSocket();
     socket.close();
 
-    Accepter.stop();
+    SocketServer.stop();
   }
 
   @Test
   public void acceptsMultipleConnections() throws IOException {
-    Accepter Accepter = new Accepter(TEST_PORT);
-    Accepter.start();
+    SocketServer SocketServer = new SocketServer(TEST_PORT);
+    SocketServer.start();
 
     List<Socket> sockets = (range(0, 10)).mapToObj(i -> testSocket()).collect(Collectors.toList());
 
     sockets.forEach(this::close);
 
-    Accepter.stop();
+    SocketServer.stop();
   }
 
   @Test
   public void acceptsDataWithMultipleConnections() throws IOException, InterruptedException {
-    Accepter Accepter = new Accepter(TEST_PORT);
-    Accepter.start();
+    SocketServer SocketServer = new SocketServer(TEST_PORT);
+    SocketServer.start();
 
     List<Socket> sockets = (range(0, 10)).mapToObj(i -> testSocket()).collect(Collectors.toList());
 
@@ -58,7 +58,7 @@ public class FunctionalTests {
     sockets.forEach(this::close);
     Thread.sleep(200);
 
-    Accepter.stop();
+    SocketServer.stop();
   }
 
   private void sendTestData(Socket socket) {
