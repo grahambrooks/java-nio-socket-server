@@ -16,7 +16,7 @@ import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 
 public class SocketServer {
-  private static Logger log = Logger.getLogger(SocketServer.class.getName());
+  private static final Logger log = Logger.getLogger(SocketServer.class.getName());
 
   private final SocketReadHandlerFactory readHandlerFactory;
   private final int tcpPort;
@@ -67,7 +67,7 @@ public class SocketServer {
       }
     } catch (IOException e) {
       this.started.release();
-      log.log(WARNING, "Selector thread faild", e);
+      log.log(WARNING, "Selector thread failed", e);
     }
   }
 
@@ -110,8 +110,7 @@ public class SocketServer {
       channel.configureBlocking(false);
       Socket socket = channel.socket();
 
-      SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-      log.log(INFO, "Connected to: " + remoteAddr);
+      log.log(INFO, "Connected to: " + socket.getRemoteSocketAddress());
 
       SelectionKey register = channel.register(this.selector, SelectionKey.OP_READ);
       if (register.attachment() != null) {

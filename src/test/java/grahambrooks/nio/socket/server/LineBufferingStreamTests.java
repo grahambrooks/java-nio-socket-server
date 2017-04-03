@@ -8,7 +8,7 @@ public class LineBufferingStreamTests {
   @Test
   public void emitsLineOnReceipt() {
     StringBuffer output = new StringBuffer();
-    LineBufferingStream stream = new LineBufferingStream(line -> output.append(line));
+    LineBufferingStream stream = new LineBufferingStream(output::append);
 
     stream.write("This is a line\n");
     assertThat(output.toString()).isEqualTo("This is a line");
@@ -21,7 +21,7 @@ public class LineBufferingStreamTests {
   @Test
   public void emitsUnprocessedTextWhenClosed() {
     StringBuffer output = new StringBuffer();
-    LineBufferingStream stream = new LineBufferingStream(line -> output.append(line));
+    LineBufferingStream stream = new LineBufferingStream(output::append);
 
     stream.write("partial");
     stream.close();
@@ -32,7 +32,7 @@ public class LineBufferingStreamTests {
   @Test
   public void emitsLineTextOnNewline() {
     StringBuffer output = new StringBuffer();
-    LineBufferingStream stream = new LineBufferingStream(line -> output.append(line));
+    LineBufferingStream stream = new LineBufferingStream(output::append);
 
     stream.write("This is a line\n");
     stream.close();

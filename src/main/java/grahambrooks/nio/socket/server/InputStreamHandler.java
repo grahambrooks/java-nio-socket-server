@@ -7,16 +7,16 @@ import java.nio.channels.SocketChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class InputStreamHandler implements ReadHandler {
-  private static Logger log = Logger.getLogger(SocketServer.class.getName());
+public class InputStreamHandler implements ReadHandler {
+  private final static Logger log = Logger.getLogger(SocketServer.class.getName());
   private final LineBufferingStream stream;
 
-  InputStreamHandler(LineBufferingStream stream) {
+  public InputStreamHandler(LineBufferingStream stream) {
     this.stream = stream;
   }
 
   InputStreamHandler() {
-    this(new LineBufferingStream(line -> System.out.println(line)));
+    this(new LineBufferingStream(System.out::println));
   }
 
   @Override

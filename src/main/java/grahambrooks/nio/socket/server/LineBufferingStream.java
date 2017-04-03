@@ -4,7 +4,7 @@ public class LineBufferingStream {
   private final Delegate delegate;
   private final StringBuffer received;
 
-  LineBufferingStream(Delegate delegate) {
+  public LineBufferingStream(Delegate delegate) {
     this.delegate = delegate;
     this.received = new StringBuffer();
   }
