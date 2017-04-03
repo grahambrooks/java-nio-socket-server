@@ -2,18 +2,25 @@ package grahambrooks.nio.socket.server;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-class InputStreamHandler {
+class InputStreamHandler implements ReadHandler {
+  private static Logger log = Logger.getLogger(SocketServer.class.getName());
   private final LineBufferingStream stream;
 
-  InputStreamHandler() {
-    stream = new LineBufferingStream(line -> System.out.println(line));
+  InputStreamHandler(LineBufferingStream stream) {
+    this.stream = stream;
   }
 
-  void read(SocketChannel channel) {
+  InputStreamHandler() {
+    this(new LineBufferingStream(line -> System.out.println(line)));
+  }
+
+  @Override
+  public void read(SocketChannel channel) {
     try {
       ByteBuffer buffer = ByteBuffer.allocate(1024);
       int bytesRead;
@@ -21,11 +28,7 @@ class InputStreamHandler {
         bytesRead = channel.read(buffer);
 
         if (bytesRead == -1) {
-          Socket socket = channel.socket();
-          SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-          System.out.println("Connection closed by client: " + remoteAddr);
-          channel.close();
-          stream.close();
+          handleConnectionClosed(channel);
           return;
         }
 
@@ -33,7 +36,14 @@ class InputStreamHandler {
         buffer.clear();
       } while (bytesRead > 0);
     } catch (IOException e) {
-      e.printStackTrace();
+      log.log(Level.WARNING, "Error reading from socket channel ", e);
     }
+  }
+
+  private void handleConnectionClosed(SocketChannel channel) throws IOException {
+    Socket socket = channel.socket();
+    log.log(Level.INFO, "Connection closed by client: " + socket.getRemoteSocketAddress());
+    channel.close();
+    stream.close();
   }
 }

@@ -14,7 +14,7 @@ import static java.util.stream.IntStream.range;
 public class FunctionalTests {
 
   private static final int TEST_PORT = 9000;
-  private static final String LOREM_IPSEM = "Sed ut perspiciatis, unde omnis iste natus error sit voluptatem accusantium" +
+  private static final String LOREM_IPSUM = "Sed ut perspiciatis, unde omnis iste natus error sit voluptatem accusantium" +
     " doloremque laudantium, totam rem aperiam eaque ipsa, quae ab illo inventore veritatis et quasi architecto beatae " +
     "vitae dicta sunt, explicabo. Nemo enim ipsam voluptatem, quia voluptas sit, aspernatur aut odit aut fugit, sed quia " +
     "consequuntur magni dolores eos, qui ratione voluptatem sequi nesciunt, neque porro quisquam est, qui dolorem ipsum, quia " +
@@ -25,7 +25,7 @@ public class FunctionalTests {
 
   @Test
   public void acceptsConnection() throws IOException {
-    SocketServer SocketServer = new SocketServer(TEST_PORT);
+    SocketServer SocketServer = new SocketServer(TEST_PORT, () -> null);
     SocketServer.start();
 
     Socket socket = testSocket();
@@ -36,7 +36,7 @@ public class FunctionalTests {
 
   @Test
   public void acceptsMultipleConnections() throws IOException {
-    SocketServer SocketServer = new SocketServer(TEST_PORT);
+    SocketServer SocketServer = new SocketServer(TEST_PORT, () -> null);
     SocketServer.start();
 
     List<Socket> sockets = (range(0, 10)).mapToObj(i -> testSocket()).collect(Collectors.toList());
@@ -48,7 +48,7 @@ public class FunctionalTests {
 
   @Test
   public void acceptsDataWithMultipleConnections() throws IOException, InterruptedException {
-    SocketServer SocketServer = new SocketServer(TEST_PORT);
+    SocketServer SocketServer = new SocketServer(TEST_PORT, () -> new InputStreamHandler(new LineBufferingStream(System.out::println)));
     SocketServer.start();
 
     List<Socket> sockets = (range(0, 10)).mapToObj(i -> testSocket()).collect(Collectors.toList());
@@ -64,7 +64,7 @@ public class FunctionalTests {
   private void sendTestData(Socket socket) {
     try {
       OutputStream outputStream = socket.getOutputStream();
-      String[] loremIpsem = LOREM_IPSEM.split(" ");
+      String[] loremIpsem = LOREM_IPSUM.split(" ");
       for (String s : loremIpsem) {
         String text = s + " ";
         outputStream.write(text.getBytes());
