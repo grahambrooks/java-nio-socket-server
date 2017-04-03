@@ -4,11 +4,11 @@ This example requires Java 8.
 
 To Build:
 
-  mvn package
+    mvn package
   
 To Run
 
-  java -jar target/nio-socket-server-1.0-SNAPSHOT.jar
+    java -jar target/nio-socket-server-1.0-SNAPSHOT.jar
   
 The sample runs on port 9000, accepts incoming socket connections and outputs each line of text received to the terminal.
 
