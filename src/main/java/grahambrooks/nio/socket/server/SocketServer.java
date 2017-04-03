@@ -2,18 +2,13 @@ package grahambrooks.nio.socket.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
-import static java.util.logging.Level.INFO;
-import static java.util.logging.Level.WARNING;
+import static java.nio.channels.SelectionKey.OP_READ;
+import static java.util.logging.Level.*;
 
 public class SocketServer {
   private static final Logger log = Logger.getLogger(SocketServer.class.getName());
@@ -32,43 +27,65 @@ public class SocketServer {
   public void start() {
     stop();
     try {
-      this.started = new Semaphore(1);
-      this.started.acquire();
+      initializeStartedSignal();
 
       thread = new Thread(this::run);
       thread.start();
 
-      this.started.acquire();
+      waitUntilStarted();
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      log.log(SEVERE, "Failed to start server thread", e);
     }
+  }
+
+  private void initializeStartedSignal() throws InterruptedException {
+    this.started = new Semaphore(1);
+    this.started.acquire();
+  }
+
+  private void waitUntilStarted() throws InterruptedException {
+    this.started.acquire();
   }
 
 
   private void run() {
-    Thread.currentThread().setName("Selector thread");
+    setThreadName("Selector thread");
     try {
       this.selector = Selector.open();
       ServerSocketChannel serverChannel = openServerSocketChannel();
-
-      this.started.release();
-
+      signalStarted();
 
       while (true) {
-        int select = this.selector.select(100);
-
-        if (Thread.currentThread().isInterrupted()) {
-          serverChannel.close();
-        }
-
-        if (select > 0) {
-          processKeysWithWork(this.selector.selectedKeys().iterator());
-        }
+        work(serverChannel);
       }
     } catch (IOException e) {
       this.started.release();
       log.log(WARNING, "Selector thread failed", e);
     }
+  }
+
+  private void work(ServerSocketChannel serverChannel) throws IOException {
+    int workItemCount = this.selector.select(100);
+
+    if (isInterrupted()) {
+      serverChannel.close();
+    }
+
+    if (workItemCount > 0) {
+      processKeysWithWork(this.selector.selectedKeys().iterator());
+    }
+  }
+
+  private void setThreadName(String threadName) {
+    Thread.currentThread().setName(threadName);
+  }
+
+  private void signalStarted() {
+    this.started.release();
+  }
+
+  private boolean isInterrupted() {
+    return Thread.currentThread().isInterrupted();
   }
 
   private void processKeysWithWork(Iterator<SelectionKey> keys) {
@@ -106,22 +123,31 @@ public class SocketServer {
     try {
       ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
 
-      SocketChannel channel = serverChannel.accept();
-      channel.configureBlocking(false);
-      Socket socket = channel.socket();
+      SocketChannel channel = acceptNonBlocking(serverChannel);
 
-      log.log(INFO, "Connected to: " + socket.getRemoteSocketAddress());
+      log.log(INFO, "Connected to: " + channel.socket().getRemoteSocketAddress());
 
-      SelectionKey register = channel.register(this.selector, SelectionKey.OP_READ);
-      if (register.attachment() != null) {
-        log.log(WARNING, "KEY ALREADY HAS ATTACHMENT");
-      }
-      register.attach(readHandlerFactory.readHandler());
-//      register.attach(new InputStreamHandler());
+      configureSelector(channel, this.selector, readHandlerFactory);
 
     } catch (IOException e) {
-      e.printStackTrace();
+      log.log(WARNING, "Error accepting connection ", e);
     }
+  }
+
+  private void configureSelector(SocketChannel channel, Selector selector, SocketReadHandlerFactory readHandlerFactory) throws ClosedChannelException {
+    SelectionKey register = channel.register(selector, OP_READ);
+
+    if (register.attachment() != null) {
+      log.log(WARNING, "KEY ALREADY HAS ATTACHMENT");
+    }
+
+    register.attach(readHandlerFactory.readHandler());
+  }
+
+  private SocketChannel acceptNonBlocking(ServerSocketChannel serverChannel) throws IOException {
+    SocketChannel channel = serverChannel.accept();
+    channel.configureBlocking(false);
+    return channel;
   }
 
   public void stop() {
