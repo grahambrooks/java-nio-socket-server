@@ -1,6 +1,6 @@
 package grahambrooks.nio.socket.server;
 
-public class LineBufferingStream {
+public class LineBufferingStream implements ReadStream{
   private final Delegate delegate;
   private final StringBuffer received;
 
@@ -9,11 +9,13 @@ public class LineBufferingStream {
     this.received = new StringBuffer();
   }
 
+  @Override
   public void write(String text) {
     received.append(text);
     emitLines();
   }
 
+  @Override
   public void close() {
     emitLines();
     this.delegate.accept(received.toString());

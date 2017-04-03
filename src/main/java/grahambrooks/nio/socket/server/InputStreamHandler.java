@@ -9,14 +9,10 @@ import java.util.logging.Logger;
 
 public class InputStreamHandler implements ReadHandler {
   private final static Logger log = Logger.getLogger(SocketServer.class.getName());
-  private final LineBufferingStream stream;
+  private final ReadStream stream;
 
-  public InputStreamHandler(LineBufferingStream stream) {
+  public InputStreamHandler(ReadStream stream) {
     this.stream = stream;
-  }
-
-  InputStreamHandler() {
-    this(new LineBufferingStream(System.out::println));
   }
 
   @Override
